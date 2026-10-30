@@ -1,0 +1,82 @@
+{
+  "name": "Imaginary Library - 3 book rooms + reading hall",
+
+  "rooms": ["Room1", "Room2", "Room3", "ReadingHall"],
+  "rows": [
+    {"id": "RowA1", "room": "Room1"},
+    {"id": "RowB1", "room": "Room2"},
+    {"id": "RowC1", "room": "Room3"}
+  ],
+  "shelves": [
+    {"id": "S1",  "row": "RowA1", "room": "Room1"},
+    {"id": "S2",  "row": "RowA1", "room": "Room1"},
+    {"id": "S10", "row": "RowB1", "room": "Room2"},
+    {"id": "S11", "row": "RowB1", "room": "Room2"},
+    {"id": "S7",  "row": "RowC1", "room": "Room3"},
+    {"id": "S8",  "row": "RowC1", "room": "Room3"}
+  ],
+  "places": [
+    {"id": "Table1", "type": "Table", "room": "ReadingHall"},
+    {"id": "Table2", "type": "Table", "room": "ReadingHall"},
+    {"id": "Chair1", "type": "Chair", "room": "ReadingHall"},
+    {"id": "Floor1", "type": "Floor", "room": "ReadingHall"}
+  ],
+
+  "users": ["Ahmed", "Sara", "Karim"],
+  "books": [
+    {"id": "B15", "title": "Artificial Intelligence", "shelf": "S7"},
+    {"id": "B20", "title": "Linear Algebra",          "shelf": "S8"},
+    {"id": "B25", "title": "Machine Learning",        "shelf": "S10"},
+    {"id": "B30", "title": "Databases",               "shelf": "S1"},
+    {"id": "B35", "title": "Computer Networks",       "shelf": "S2"},
+    {"id": "B40", "title": "Operating Systems",       "shelf": "S11"},
+    {"id": "B50", "title": "Stray Novel (no QR)",     "shelf": "S1"}
+  ],
+  "copies": [
+    {"id": "C15", "book": "B15"}, {"id": "C16", "book": "B15"},
+    {"id": "C20", "book": "B20"}, {"id": "C25", "book": "B25"},
+    {"id": "C30", "book": "B30"}, {"id": "C35", "book": "B35"},
+    {"id": "C40", "book": "B40"}
+  ],
+  "borrowed":  [{"copy": "C16", "user": "Ahmed"}, {"copy": "C20", "user": "Ahmed"}],
+  "reserved":  [{"book": "B25", "user": "Sara"}],
+
+  "shelf_state": {"S8": ["B20"], "S2": ["B35"], "S11": ["B40"]},
+
+  "map_edges": [
+    ["Entrance", "CorrA"], ["CorrA", "CorrH"], ["CorrH", "Corridor"], ["Corridor", "CorrC"],
+    ["CorrA", "Room1"], ["Corridor", "Room2"], ["CorrC", "Room3"],
+    ["CorrH", "ReadingHall"], ["CorrC", "LostAndFound"],
+    ["ReadingHall", "Table1"], ["ReadingHall", "Table2"],
+    ["ReadingHall", "Chair1"], ["ReadingHall", "Floor1"],
+    ["Room1", "RowA1"], ["RowA1", "S1"], ["RowA1", "S2"],
+    ["Room2", "RowB1"], ["RowB1", "S10"], ["RowB1", "S11"],
+    ["Room3", "RowC1"], ["RowC1", "S7"],  ["RowC1", "S8"]
+  ],
+
+  "robot": {"id": "Robot1", "start": "Entrance",
+            "patrol": ["Table1", "Chair1", "Table2", "Floor1"]},
+
+  "world": {
+    "Table1": [{"id": "B15", "class": "Book"}, {"id": "Bag1", "class": "Bag"}],
+     "Chair1": [{"id": "B25", "class": "Book"}, {"id": "Lamp1", "class": "Lamp"}],
+    "Table2": [{"id": "B30", "class": "Book"}],
+    "Floor1": [{"id": "B50", "class": "Book"}],
+    "S8":  [{"id": "B20", "class": "Book"}],
+    "S2":  [{"id": "B35", "class": "Book"}],
+    "S11": [{"id": "B40", "class": "Book"}]
+  },
+
+  "qr_sides": {"B15": [1], "B25": [2], "B30": [1], "B20": [1], "B35": [1], "B40": [1]},
+
+  "requests": [
+    {"user": "Karim", "book": "B25"},
+    {"user": "Karim", "book": "B20"},
+    {"user": "Karim", "book": "B15"},
+    {"user": "Sara",  "book": "B15"},
+    {"user": "Sara",  "book": "B30"}
+  ],
+
+  "shelf_rows": 3,
+  "book_row_on_shelf": {"B15": 3, "B20": 2, "B25": 1, "B30": 2, "B35": 3, "B40": 1, "B50": 2}
+}

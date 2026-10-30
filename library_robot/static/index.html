@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Library Robot</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='5' y='3' width='22' height='26' rx='2' fill='%231f3a5f'/%3E%3Crect x='5' y='10' width='22' height='2' fill='%23c8483f'/%3E%3Ccircle cx='16' cy='24' r='2' fill='%23eef1ec'/%3E%3C/svg%3E">
+<style>
+:root{
+  --paper:#eef1ec; --card:#fffefa; --ink:#1b2a2f; --muted:#56666b; --line:#cbd3cd;
+  --primary:#1f3a5f; --on-primary:#ffffff; --rule:#c8483f;
+  --green:#1e6b52; --green-bg:#dcebe3;
+  --brass:#7a5a10; --brass-bg:#f3e7c6;
+  --brick:#a2332f; --brick-bg:#f5dedb;
+  --focus:#1f6fd6;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --type:ui-monospace,"Courier New",Courier,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#11181b; --card:#1a2428; --ink:#e6ecea; --muted:#98a7ab; --line:#2c3a3f;
+    --primary:#8fb3e3; --on-primary:#0e1a2a; --rule:#e0726a;
+    --green:#6fcba4; --green-bg:#173328; --brass:#e2b65a; --brass-bg:#3a2f14;
+    --brick:#f08a84; --brick-bg:#3f1e1d; --focus:#7db4ff;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#11181b; --card:#1a2428; --ink:#e6ecea; --muted:#98a7ab; --line:#2c3a3f;
+  --primary:#8fb3e3; --on-primary:#0e1a2a; --rule:#e0726a;
+  --green:#6fcba4; --green-bg:#173328; --brass:#e2b65a; --brass-bg:#3a2f14;
+  --brick:#f08a84; --brick-bg:#3f1e1d; --focus:#7db4ff;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 var(--sans)}
+h1,h2,h3{font-family:var(--serif);font-weight:600;margin:0;line-height:1.2}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 56px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 18px;margin-bottom:20px}
+header.top h1{font-size:1.9rem}
+header.top .sub{color:var(--muted);font-size:.95rem}
+header.top .stats{margin-left:auto;display:flex;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:.9rem}
+header.top .stats b{color:var(--ink);font-variant-numeric:tabular-nums}
+.layout{display:grid;grid-template-columns:minmax(300px,360px) minmax(0,1fr);gap:24px;align-items:start}
+.layout>*{min-width:0}
+@media (max-width:860px){.layout{grid-template-columns:minmax(0,1fr)}}
+.desk{position:sticky;top:16px;display:grid;gap:16px}
+@media (max-width:860px){.desk{position:static}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:16px}
+.panel h2{font-size:1.15rem;margin-bottom:12px}
+label{display:block;font-size:.9rem;color:var(--muted);margin:10px 0 4px}
+input[type=text],input[type=number],select{width:100%;min-height:44px;padding:8px 10px;background:var(--paper);border:1px solid var(--line);border-radius:4px}
+.row{display:flex;gap:8px}
+.row>*{flex:1;min-width:0}
+.row>.fit{flex:0 0 auto}
+button{min-height:44px;padding:8px 14px;border-radius:4px;border:1px solid var(--line);background:var(--card);cursor:pointer}
+button:hover{border-color:var(--muted)}
+button.primary{background:var(--primary);border-color:var(--primary);color:var(--on-primary);font-weight:600}
+button.link{min-height:0;padding:0;border:0;background:none;color:var(--primary);text-decoration:underline;text-underline-offset:3px;text-align:left}
+button[disabled]{opacity:.55;cursor:progress}
+.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.scan{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:4px;cursor:pointer;background:var(--card);white-space:nowrap}
+.scan:hover{border-color:var(--muted)}
+.scan:focus-within{outline:3px solid var(--focus);outline-offset:2px}
+.scan input{position:absolute;opacity:0;width:1px;height:1px}
+
+/* the catalogue card: the one memorable element */
+.catcard{position:relative;background:var(--card);border:1px solid var(--line);border-radius:3px;padding:14px 16px 46px;box-shadow:0 1px 0 var(--line),0 6px 14px -10px rgba(0,0,0,.35)}
+.catcard::after{content:"";position:absolute;left:50%;bottom:14px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:var(--paper);border:1px solid var(--line);box-shadow:inset 0 1px 2px rgba(0,0,0,.25)}
+.catcard .head{font-family:var(--serif);font-size:1.12rem;line-height:1.3;padding-bottom:10px;border-bottom:2px solid var(--rule);margin-bottom:10px}
+.catcard .head .mark{display:inline-block;margin-right:6px;font-family:var(--sans);font-size:.8rem;font-weight:700;padding:1px 7px;border-radius:3px;vertical-align:2px}
+.catcard.ok .mark{background:var(--green-bg);color:var(--green)}
+.catcard.no .mark{background:var(--brick-bg);color:var(--brick)}
+.catcard.info .mark{background:var(--brass-bg);color:var(--brass)}
+.proof{font-family:var(--type);font-size:.84rem;line-height:1.5;margin:0 0 12px}
+.proof .goal{font-weight:700;overflow-wrap:anywhere}
+.proof .how{color:var(--muted);overflow-wrap:anywhere}
+.proof .rule{display:block;margin-top:2px;color:var(--muted)}
+.proof .no{color:var(--brass)}
+.empty{color:var(--muted);font-size:.95rem}
+.hint{color:var(--muted);font-size:.88rem;margin:8px 0 0}
+
+/* tabs */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px;overflow-x:auto}
+.tabs button{border:0;border-bottom:3px solid transparent;border-radius:0;background:none;min-height:44px;color:var(--muted);white-space:nowrap}
+.tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--rule);font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:.95rem}
+th{font-weight:600;text-align:left;color:var(--muted);font-size:.85rem;padding:6px 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+td.id{font-family:var(--type);white-space:nowrap}
+td.num{font-variant-numeric:tabular-nums}
+.scroll{overflow-x:auto}
+.badge{display:inline-block;padding:1px 8px;border-radius:3px;font-size:.84rem;font-weight:600;white-space:nowrap}
+.badge.available{background:var(--green-bg);color:var(--green)}
+.badge.available::before{content:"\2713\00a0"}
+.badge.reserved{background:var(--brass-bg);color:var(--brass)}
+.badge.reserved::before{content:"\25CF\00a0"}
+.badge.borrowed,.badge.no_copy{background:var(--brick-bg);color:var(--brick)}
+.badge.borrowed::before,.badge.no_copy::before{content:"\2715\00a0"}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.toolbar input{max-width:340px}
+.detail{margin-bottom:16px}
+.detail .cols{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start}
+.detail .cols>div{flex:1 1 260px;min-width:0}
+.detail img.qr{width:132px;height:132px;image-rendering:pixelated;border:1px solid var(--line);background:#fff;padding:6px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.member h3{font-size:1.05rem;margin-bottom:6px}
+.member ul{margin:4px 0 0;padding-left:18px;font-size:.92rem}
+.member li{margin:2px 0}
+form.inline{display:grid;gap:4px;max-width:420px}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:16px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0}
+.chip{min-height:36px;padding:4px 10px;font-family:var(--type);font-size:.82rem}
+details{margin-top:14px}
+summary{cursor:pointer;min-height:36px;display:flex;align-items:center}
+.rules td.id{font-size:.85rem}
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:4px;max-width:90vw;z-index:5}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.theme{margin-left:8px;min-height:32px;padding:2px 10px;font-size:.85rem}
+@media (prefers-reduced-motion:no-preference){
+  .catcard.fresh{animation:land .28s ease-out}
+  @keyframes land{from{transform:translateY(-8px) rotate(-.6deg);opacity:.2}to{transform:none;opacity:1}}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Library Robot</h1>
+    <span class="sub" id="libname">Loading the library&hellip;</span>
+    <div class="stats" id="stats" aria-label="Library totals"></div>
+    <button class="theme" id="theme" type="button" aria-label="Switch between light and dark">Dark</button>
+  </header>
+
+  <div class="layout">
+    <aside class="desk" aria-label="Circulation desk">
+      <section class="panel">
+        <h2>Desk</h2>
+        <label for="user">Member</label>
+        <select id="user"></select>
+        <label for="book">Book id</label>
+        <div class="row">
+          <input type="text" id="book" list="booklist" placeholder="B15" autocomplete="off" autocapitalize="characters" spellcheck="false">
+          <label class="scan fit" id="scanlabel">Scan photo<input type="file" id="scanfile" accept="image/*" capture="environment"></label>
+        </div>
+        <datalist id="booklist"></datalist>
+        <div class="actions">
+          <button class="primary" id="b-borrow" type="button">Borrow</button>
+          <button id="b-return" type="button">Return</button>
+          <button id="b-reserve" type="button">Reserve</button>
+        </div>
+        <p class="hint">Take a photo of the QR code on the book, or type its id.</p>
+      </section>
+      <div id="result" aria-live="polite"></div>
+    </aside>
+
+    <main>
+      <div class="tabs" role="tablist" aria-label="Library sections" id="tabs">
+        <button role="tab" id="t-books" aria-selected="true" aria-controls="p-books" data-tab="books">Books</button>
+        <button role="tab" id="t-loans" aria-selected="false" aria-controls="p-loans" data-tab="loans">On loan</button>
+        <button role="tab" id="t-members" aria-selected="false" aria-controls="p-members" data-tab="members">Members</button>
+        <button role="tab" id="t-catalogue" aria-selected="false" aria-controls="p-catalogue" data-tab="catalogue">Add to catalogue</button>
+        <button role="tab" id="t-ask" aria-selected="false" aria-controls="p-ask" data-tab="ask">Ask the logic</button>
+        <button role="tab" id="t-activity" aria-selected="false" aria-controls="p-activity" data-tab="activity">Activity</button>
+      </div>
+
+      <section id="p-books" role="tabpanel" aria-labelledby="t-books">
+        <div class="toolbar"><input type="text" id="filter" placeholder="Search by id or title" aria-label="Search books"></div>
+        <div id="detail"></div>
+        <div class="scroll"><table><thead><tr><th>Id</th><th>Title</th><th>Shelf</th><th>Status</th><th>Free copies</th></tr></thead><tbody id="booktable"></tbody></table></div>
+      </section>
+
+      <section id="p-loans" role="tabpanel" aria-labelledby="t-loans" hidden>
+        <div class="scroll"><table><thead><tr><th>Copy</th><th>Title</th><th>Member</th><th>Since</th><th></th></tr></thead><tbody id="loantable"></tbody></table></div>
+        <p class="empty" id="noloans" hidden>No book is out right now.</p>
+      </section>
+
+      <section id="p-members" role="tabpanel" aria-labelledby="t-members" hidden>
+        <form class="inline panel" id="f-user" style="margin-bottom:16px">
+          <h2>New member</h2>
+          <label for="newuser">Name</label>
+          <input type="text" id="newuser" maxlength="40" autocomplete="off">
+          <div style="margin-top:10px"><button class="primary" type="submit">Add member</button></div>
+        </form>
+        <div class="cards" id="members"></div>
+      </section>
+
+      <section id="p-catalogue" role="tabpanel" aria-labelledby="t-catalogue" hidden>
+        <div class="two">
+          <form class="inline panel" id="f-book">
+            <h2>New book</h2>
+            <label for="nb-id">Book id</label><input type="text" id="nb-id" placeholder="B60" autocomplete="off">
+            <label for="nb-title">Title</label><input type="text" id="nb-title" maxlength="120" autocomplete="off">
+            <label for="nb-shelf">Home shelf</label><select id="nb-shelf"></select>
+            <label for="nb-copies">Copies</label><input type="number" id="nb-copies" min="1" max="20" value="1">
+            <div style="margin-top:10px"><button class="primary" type="submit">Add book</button></div>
+          </form>
+          <form class="inline panel" id="f-shelf">
+            <h2>New shelf</h2>
+            <label for="ns-id">Shelf id</label><input type="text" id="ns-id" placeholder="S20" autocomplete="off">
+            <label for="ns-room">Room</label><input type="text" id="ns-room" placeholder="Room3" autocomplete="off">
+            <label for="ns-row">Row</label><input type="text" id="ns-row" placeholder="RowC1" autocomplete="off">
+            <div style="margin-top:10px"><button class="primary" type="submit">Add shelf</button></div>
+          </form>
+        </div>
+        <div class="scroll"><table><thead><tr><th>Shelf</th><th>Room</th><th>Row</th><th>Books homed here</th></tr></thead><tbody id="shelftable"></tbody></table></div>
+      </section>
+
+      <section id="p-ask" role="tabpanel" aria-labelledby="t-ask" hidden>
+        <form class="panel" id="f-ask">
+          <h2>Ask the logic</h2>
+          <p class="hint" style="margin-top:0">The reasoning engine answers by backward chaining over the library facts and the rules. A <code>?name</code> is a variable.</p>
+          <label for="q">Query</label>
+          <input type="text" id="q" placeholder="Reserved(B25)" autocomplete="off" spellcheck="false">
+          <label for="given">Assume these facts as well (optional, separated by commas)</label>
+          <input type="text" id="given" placeholder="QRRead(B15)" autocomplete="off" spellcheck="false">
+          <div class="row" style="margin-top:12px"><button class="primary fit" type="submit">Ask</button></div>
+          <div class="chips" id="examples"></div>
+        </form>
+        <div id="askout" style="margin-top:16px" aria-live="polite"></div>
+        <details><summary>All rules the robot reasons with</summary>
+          <div class="scroll"><table class="rules"><tbody id="ruletable"></tbody></table></div>
+        </details>
+      </section>
+
+      <section id="p-activity" role="tabpanel" aria-labelledby="t-activity" hidden>
+        <div class="scroll"><table><thead><tr><th>When</th><th>What</th><th>Detail</th></tr></thead><tbody id="eventtable"></tbody></table></div>
+      </section>
+    </main>
+  </div>
+</div>
+<div id="toast" class="toast" role="status" hidden></div>
+
+<script>
+"use strict";
+/* ---------- tiny helpers (all text goes through textContent: no HTML injection) ---------- */
+const $ = (id) => document.getElementById(id);
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v === false || v == null) continue;
+    if (k === "class") el.className = v;
+    else if (k === "on") for (const [ev, fn] of Object.entries(v)) el.addEventListener(ev, fn);
+    else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids.flat()) if (kid != null && kid !== false) el.append(kid.nodeType ? kid : String(kid));
+  return el;
+}
+const clear = (el) => { el.replaceChildren(); return el; };
+async function api(path, body, raw) {
+  const opts = body === undefined ? {} : raw
+    ? { method: "POST", body, headers: { "Content-Type": body.type || "application/octet-stream" } }
+    : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) };
+  let res;
+  try { res = await fetch(path, opts); } catch { return { ok: false, data: { error: "Cannot reach the server. Is it still running?" } }; }
+  let data = null;
+  try { data = await res.json(); } catch { data = { error: "Unexpected answer from the server." }; }
+  return { ok: res.ok, data };
+}
+let toastTimer;
+function toast(msg) {
+  const t = $("toast"); t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 3800);
+}
+
+/* ---------- state ---------- */
+const S = { books: [], users: [], loans: [], shelves: [], events: [], overview: null, tab: "books" };
+
+async function refresh() {
+  const [ov, bk, us, ln, sh, ev, ru] = await Promise.all(["/api/overview", "/api/books", "/api/users",
+    "/api/loans", "/api/shelves", "/api/events?n=40", "/api/rules"].map((p) => api(p)));
+  if (![ov, bk, us, ln, sh, ev].every((r) => r.ok)) { toast("Could not load the library."); return; }
+  Object.assign(S, { overview: ov.data, books: bk.data, users: us.data, loans: ln.data, shelves: sh.data, events: ev.data });
+  if (ru.ok) S.rules = ru.data;
+  render();
+}
+
+/* ---------- rendering ---------- */
+function badge(b) {
+  const label = { available: "Available", reserved: b.reserved_for.length ? "Reserved for " + b.reserved_for.join(", ") : "Reserved",
+                  borrowed: "All copies out", no_copy: "No copy" }[b.status];
+  return h("span", { class: "badge " + b.status }, label);
+}
+
+function render() {
+  const o = S.overview;
+  $("libname").textContent = o.name;
+  clear($("stats")).append(
+    h("span", null, h("b", null, o.books), " books"), h("span", null, h("b", null, o.copies - o.copies_out), " of ", h("b", null, o.copies), " copies in"),
+    h("span", null, h("b", null, o.reservations), " reserved"), h("span", null, h("b", null, o.members), " members"));
+
+  const sel = $("user"), cur = sel.value;
+  clear(sel).append(...S.users.map((u) => h("option", { value: u.name }, u.name)));
+  if (S.users.some((u) => u.name === cur)) sel.value = cur;
+  clear($("booklist")).append(...S.books.map((b) => h("option", { value: b.id }, b.title)));
+
+  renderBooks(); renderLoans(); renderMembers(); renderShelves(); renderEvents(); renderRules();
+}
+
+function renderBooks() {
+  const f = $("filter").value.trim().toLowerCase();
+  const rows = S.books.filter((b) => !f || b.id.toLowerCase().includes(f) || b.title.toLowerCase().includes(f));
+  const body = clear($("booktable"));
+  if (!rows.length) body.append(h("tr", null, h("td", { colspan: 5, class: "empty" }, "No book matches. Try another word, or add the book under Add to catalogue.")));
+  for (const b of rows) {
+    body.append(h("tr", null,
+      h("td", { class: "id" }, b.id),
+      h("td", null, h("button", { class: "link", type: "button", on: { click: () => openDetail(b.id) } }, b.title)),
+      h("td", null, b.location.slice(1).join(" > ")),
+      h("td", null, badge(b)),
+      h("td", { class: "num" }, b.copies_free + " of " + b.copies.length)));
+  }
+}
+
+function renderLoans() {
+  const body = clear($("loantable"));
+  $("noloans").hidden = S.loans.length > 0;
+  for (const l of S.loans) {
+    body.append(h("tr", null, h("td", { class: "id" }, l.copy), h("td", null, l.title + " (" + l.book + ")"), h("td", null, l.user),
+      h("td", { class: "num" }, l.borrowed_at),
+      h("td", null, h("button", { type: "button", on: { click: () => desk("return", l.user, l.book) } }, "Return"))));
+  }
+}
+
+function renderMembers() {
+  const box = clear($("members"));
+  for (const u of S.users) {
+    box.append(h("div", { class: "panel member" }, h("h3", null, u.name),
+      u.loans.length ? h("ul", null, u.loans.map((l) => h("li", null, "Has ", l.title, " (", l.copy, ")"))) : h("div", { class: "empty" }, "Nothing borrowed"),
+      u.reservations.length ? h("ul", null, u.reservations.map((r) => h("li", null, "Reserved ", r.title, " (", r.book, ")"))) : null));
+  }
+}
+
+function renderShelves() {
+  const body = clear($("shelftable"));
+  for (const s of S.shelves) body.append(h("tr", null, h("td", { class: "id" }, s.id), h("td", null, s.room), h("td", null, s.row), h("td", { class: "num" }, s.books)));
+  const sel = $("nb-shelf"), cur = sel.value;
+  clear(sel).append(...S.shelves.map((s) => h("option", { value: s.id }, s.id + " (" + s.room + ", " + s.row + ")")));
+  if (S.shelves.some((s) => s.id === cur)) sel.value = cur;
+}
+
+function renderEvents() {
+  const body = clear($("eventtable"));
+  for (const e of S.events) body.append(h("tr", null, h("td", { class: "num" }, e.ts), h("td", { class: "id" }, e.kind), h("td", null, e.detail)));
+}
+
+function renderRules() {
+  if (!S.rules) return;
+  const body = clear($("ruletable"));
+  for (const r of [...S.rules.inference, ...S.rules.actions]) body.append(h("tr", null, h("td", { class: "id" }, r.name), h("td", { class: "id" }, r.text)));
+}
+
+/* ---------- proofs and the catalogue card ---------- */
+function proofEl(p) {
+  const el = h("div", { class: "proof" }, h("div", { class: "goal" }, p.goal));
+  if (p.proved) {
+    el.append(h("div", { class: "how" }, p.text));
+    if (p.rule) el.append(h("span", { class: "rule" }, "by ", p.rule, ":  ", p.rule_text));
+  } else {
+    const why = p.goal.startsWith("NotAvailable") ? " No loan is recorded, so this copy is available." : "";
+    el.append(h("div", { class: "no" }, "Not provable." + why));
+  }
+  return el;
+}
+
+function card(kind, mark, headline, proofs) {
+  const c = h("div", { class: "catcard fresh " + kind }, h("div", { class: "head" }, h("span", { class: "mark" }, mark), headline));
+  for (const p of proofs || []) c.append(proofEl(p));
+  if (!(proofs || []).length) c.append(h("p", { class: "empty", style: "margin:0" }, "No logic was needed for this answer."));
+  return c;
+}
+
+function showResult(r) {
+  const kind = r.ok ? "ok" : (["reserved", "borrowed", "already_yours"].includes(r.outcome) ? "no" : "info");
+  const mark = r.ok ? "Done" : (kind === "no" ? "Refused" : "Check");
+  clear($("result")).append(card(kind, mark, r.message || r.error, r.proofs));
+}
+
+/* ---------- desk actions ---------- */
+function resolveBook(text) {
+  const t = text.trim();
+  const hit = S.books.find((b) => b.id.toLowerCase() === t.toLowerCase());
+  return hit ? hit.id : t;
+}
+
+async function desk(kind, user, book) {
+  user = user || $("user").value;
+  book = resolveBook(book || $("book").value);
+  if (!user) { toast("Add a member first (Members tab)."); return; }
+  if (!book) { toast("Type a book id or scan a photo first."); $("book").focus(); return; }
+  const btns = document.querySelectorAll(".actions button"); btns.forEach((b) => (b.disabled = true));
+  const { data } = await api("/api/" + kind, { user, book });
+  btns.forEach((b) => (b.disabled = false));
+  if (data.error) clear($("result")).append(card("info", "Check", data.error, []));
+  else showResult(data);
+  await refresh();
+}
+$("b-borrow").onclick = () => desk("checkout");
+$("b-return").onclick = () => desk("return");
+$("b-reserve").onclick = () => desk("reserve");
+$("book").addEventListener("keydown", (e) => { if (e.key === "Enter") desk("checkout"); });
+
+$("scanfile").addEventListener("change", async (e) => {
+  const file = e.target.files[0]; e.target.value = "";
+  if (!file) return;
+  toast("Reading the QR code…");
+  const { ok, data } = await api("/api/scan", file, true);
+  if (!ok) { toast(data.error); return; }
+  if (!data.found) { toast("No QR code found. Move closer, hold still and use good light."); return; }
+  if (!data.book) { toast(data.note || "That QR code is not a library book."); return; }
+  $("book").value = data.book;
+  if (!data.known) { clear($("result")).append(card("info", "Check", data.book + " is not in the library system. It would go to Lost & Found.", [])); return; }
+  const d = data.detail;
+  const where = d.target ? d.target.room + " > " + d.target.row + " > " + d.target.shelf : "unknown";
+  clear($("result")).append(card("ok", "Scanned", d.title + " (" + d.id + ") belongs on " + where + ".", d.proofs.filter((p) => p.proved).slice(0, 2)));
+  toast(d.id + " scanned");
+});
+
+/* ---------- book detail ---------- */
+async function openDetail(id) {
+  const { ok, data } = await api("/api/books/" + encodeURIComponent(id));
+  if (!ok) { toast(data.error); return; }
+  const box = clear($("detail"));
+  const t = data.target;
+  const c = h("div", { class: "panel detail" },
+    h("div", { class: "row", style: "align-items:baseline" }, h("h2", { style: "margin:0" }, data.title + " (" + data.id + ")"),
+      h("button", { class: "fit", type: "button", on: { click: () => clear($("detail")) } }, "Close")),
+    h("div", { class: "cols", style: "margin-top:12px" },
+      h("div", null,
+        h("p", { style: "margin:0 0 6px" }, badge(data)),
+        h("p", { style: "margin:0 0 10px" }, "Belongs on ", h("b", null, t ? t.room + " > " + t.row + " > " + t.shelf : data.location.join(" > ")),
+          data.on_shelf ? " (on the shelf now)" : " (not on its shelf right now)"),
+        h("ul", { style: "margin:0 0 10px;padding-left:18px" }, data.copies.map((cp) =>
+          h("li", null, "Copy ", cp.id, ": ", cp.available ? "available" : "borrowed by " + cp.borrowed_by))),
+        h("button", { type: "button", on: { click: () => { $("book").value = data.id; $("user").focus(); window.scrollTo({ top: 0, behavior: "smooth" }); } } }, "Use at the desk")),
+      h("div", null, h("img", { class: "qr", src: "/api/qr/" + encodeURIComponent(data.id) + ".png", alt: "QR code for " + data.id, width: 132, height: 132 }),
+        h("p", { class: "hint" }, "Print this and stick it on the book.")),
+      h("div", null, h("h3", { style: "font-size:1rem;margin-bottom:8px" }, "Why the system says so"), data.proofs.map(proofEl))));
+  box.append(c);
+  c.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+
+/* ---------- forms ---------- */
+async function submit(path, body, okMsg, form) {
+  const { ok, data } = await api(path, body);
+  if (!ok) { toast(data.error); return false; }
+  toast(okMsg(data)); if (form) form.reset(); await refresh(); return true;
+}
+$("f-user").addEventListener("submit", (e) => { e.preventDefault(); submit("/api/users", { name: $("newuser").value }, (d) => d.name + " is now a member.", e.target); });
+$("f-book").addEventListener("submit", async (e) => {
+  e.preventDefault(); const shelf = $("nb-shelf").value;
+  const ok = await submit("/api/books", { id: $("nb-id").value, title: $("nb-title").value, shelf, copies: Number($("nb-copies").value) },
+    (d) => d.id + " added. Its QR code is in the book's detail.", e.target);
+  if (ok) $("nb-shelf").value = shelf;
+});
+$("f-shelf").addEventListener("submit", (e) => { e.preventDefault(); submit("/api/shelves", { id: $("ns-id").value, room: $("ns-room").value, row: $("ns-row").value }, (d) => "Shelf " + d.id + " added.", e.target); });
+$("filter").addEventListener("input", renderBooks);
+
+/* ---------- ask the logic ---------- */
+const EXAMPLES = [["Reserved(B25)", ""], ["NotAvailable(?c)", ""], ["BorrowedBy(?c, Ahmed)", ""], ["OnShelf(?b, ?s)", ""], ["TargetShelf(B15, ?s)", "QRRead(B15)"], ["TargetRoom(B20, ?r)", "QRRead(B20)"]];
+for (const [q, g] of EXAMPLES) $("examples").append(h("button", { class: "chip", type: "button", on: { click: () => { $("q").value = q; $("given").value = g; $("f-ask").requestSubmit(); } } }, q));
+$("f-ask").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const given = $("given").value.split(/\)\s*,/).map((s) => s.trim()).filter(Boolean).map((s) => (s.endsWith(")") ? s : s + ")"));
+  const { ok, data } = await api("/api/ask", { query: $("q").value, given });
+  const out = clear($("askout"));
+  if (!ok) { out.append(card("info", "Check", data.error, [])); return; }
+  const note = data.given.length ? " (assuming " + data.given.join(", ") + ")" : "";
+  if (data.ground) out.append(card(data.true ? "ok" : "no", data.true ? "True" : "Not provable", data.query + note, [data.proof]));
+  else if (!data.answers.length) out.append(card("no", "No answer", data.query + note + " has no solution. A fact may be missing: try assuming QRRead(book).", []));
+  else out.append(card("ok", data.answers.length + (data.truncated ? "+" : "") + " found", data.query + note, data.answers.map((a) => a.proof)));
+});
+
+/* ---------- tabs and theme ---------- */
+$("tabs").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-tab]"); if (!b) return;
+  for (const t of document.querySelectorAll("[role=tab]")) {
+    const on = t === b; t.setAttribute("aria-selected", on); $(t.getAttribute("aria-controls")).hidden = !on;
+  }
+});
+$("tabs").addEventListener("keydown", (e) => {
+  if (!["ArrowLeft", "ArrowRight"].includes(e.key)) return;
+  const tabs = [...document.querySelectorAll("[role=tab]")], i = tabs.indexOf(document.activeElement);
+  if (i < 0) return;
+  const n = tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length]; n.focus(); n.click();
+});
+function setTheme(t) {
+  if (t) document.documentElement.setAttribute("data-theme", t); else document.documentElement.removeAttribute("data-theme");
+  const dark = t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  $("theme").textContent = dark ? "Light" : "Dark";
+}
+$("theme").onclick = () => {
+  const dark = $("theme").textContent === "Light"; const next = dark ? "light" : "dark";
+  setTheme(next); try { localStorage.setItem("theme", next); } catch {}
+};
+try { setTheme(localStorage.getItem("theme")); } catch { setTheme(null); }
+
+refresh();
+</script>
+</body>
+</html>

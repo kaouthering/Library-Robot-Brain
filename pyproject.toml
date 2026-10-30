@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "library-robot-krr"
+version = "1.0.0"
+description = "Knowledge-based library agent: first-order logic rules, forward/backward chaining, real QR reading, SQLite storage and a web interface."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+keywords = ["knowledge representation", "reasoning", "first-order logic", "forward chaining", "backward chaining", "qr", "library"]
+dependencies = ["opencv-python>=4.8", "numpy"]
+
+[project.optional-dependencies]
+web = ["starlette>=0.37", "uvicorn>=0.29"]
+yolo = ["ultralytics"]
+dev = ["pytest>=7", "starlette>=0.37", "uvicorn>=0.29"]
+
+[project.scripts]
+library-robot = "library_robot.main:main"
+
+[tool.setuptools]
+packages = ["library_robot"]
+
+[tool.setuptools.package-data]
+library_robot = ["library_data.json", "static/*.html"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

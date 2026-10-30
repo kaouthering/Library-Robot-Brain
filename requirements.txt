@@ -1,0 +1,6 @@
+# core (camera + QR)
+opencv-python>=4.8
+numpy
+# web interface:  pip install ".[web]"   (starlette, uvicorn)
+# optional: detect books/chairs/... in the camera image
+# ultralytics
